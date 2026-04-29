@@ -51,6 +51,11 @@ docker compose up -d --build
 | Frontend | http://localhost:3000 |
 | Swagger (API docs) | http://localhost:8080/swagger-ui.html |
 
+### Planilhas para teste
+
+- [1M de linhas (~85MB)](https://drive.google.com/file/d/1HbyMT0b9_LPKdrlTEFwuXEHpN--fNHbZ/view?usp=sharing)
+- [100k de linhas (~8MB)](https://drive.google.com/file/d/1fFEJnnFRDnou4PR_-3cy86Rb6Arr9FmE/view?usp=sharing)
+
 ---
 
 ## Stack
