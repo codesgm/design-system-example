@@ -1,0 +1,95 @@
+services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: massivo-db
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "${DB_PORT_EXTERNAL:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - massivo-network
+
+  aws-services:
+    image: gresau/localstack-persist:latest
+    container_name: massivo-aws
+    environment:
+      - PERSIST_DEFAULT=0
+      - PERSIST_S3=1
+    ports:
+      - "4566:4566"
+    volumes:
+      - "../.data/localstack:/persisted-data"
+      - "../script/s3-init.sh:/etc/localstack/init/ready.d/s3-init.sh"
+      - "../script/sqs-init.sh:/etc/localstack/init/ready.d/sqs-init.sh"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4566/_localstack/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - massivo-network
+
+  app:
+    build:
+      context: ../demo
+      dockerfile: Dockerfile
+    container_name: massivo-app
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      S3_ENDPOINT: http://aws-services:4566
+      SQS_ENDPOINT: http://aws-services:4566
+      IMPORT_QUEUE_URL: http://aws-services:4566/000000000000/import-jobs
+      S3_BUCKET: imports-bucket
+      AWS_REGION: us-east-2
+      S3_KEY: test
+      S3_SECRET: test
+      SECURITY_USER: admin
+      SECURITY_PASSWORD: admin
+      SPRING_PROFILES_ACTIVE: local
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      aws-services:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - massivo-network
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: massivo-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - massivo-network
+
+volumes:
+  postgres_data:
+
+networks:
+  massivo-network:
+    driver: bridge
+    name: massivo-network
