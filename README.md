@@ -11,7 +11,7 @@ Sistema interno para ingestão massiva de lançamentos financeiros via CSV e con
 ### Requisitos e suposições
 
 Os requisitos do enunciado são intencionalmente abertos. Por não haver definições rígidas de volume, frequência e perfil de uso, a arquitetura foi desenhada de forma pragmática para o cenário atual, mas com diagramas e decisões que representam evoluções futuras — permitindo melhorar a stack de leitura ou de escrita conforme a necessidade real se apresente.
-
+[As evoluções de arquitetura podem ser vistas aqui.](https://drive.google.com/file/d/1DYv6b3m6kHFHYPB3iY6jOBy-pxL15tjX/view?usp=sharing)
 ### Escolha do banco de dados
 
 Banco SQL (PostgreSQL) pela natureza financeira dos dados, onde **consistência transacional (ACID)** é inegociável. Materialized views não foram utilizadas no momento por não serem necessárias ainda — e caso fossem, a decisão dependeria muito dos requisitos reais: o custo de reprocessar as views é alto e precisa ser justificado. Se a demanda de leitura crescer, o caminho seria um banco específico para leitura (como ClickHouse). Se a frequência de leitura for baixa, os dados agregados poderiam ser atualizados com menor frequência, pesando na consistência eventual.
@@ -26,11 +26,11 @@ Senti falta da **história do cliente**. Sem entender o fluxo real de uso, a arq
 
 - **Quem faz as importações?** É uma equipe financeira interna? Um sistema automatizado? Quantas pessoas?
 - **Quando acontecem?** Há horários de pico? É diário, semanal, sob demanda? Concentrado no fechamento mensal?
-- **Qual o volume real?** 100k linhas por arquivo é muito diferente de 10M. Quantos arquivos por dia?
-- **Quem acompanha os dashboards?** São as mesmas pessoas que importam? Quantos usuários simultâneos?
+- **Qual o volume real?** 100k linhas por arquivo é muito diferente de 10M. Quantos arquivos por dia?  Qual prazo temos para processar? 
+- **Quem acompanha os dashboards?** São as mesmas pessoas que importam? Quantos usuários simultâneos? 
 - **Qual a frequência de atualização aceitável?** Os dados precisam aparecer em tempo real após a importação, ou um delay de minutos/horas é aceitável?
-- **Qual o comportamento esperado com erros?** O usuário corrige e reimporta? Existe um fluxo de aprovação?
-- **Há integração com outros sistemas?** Os dados vêm de ERPs, bancos, conciliação? Qual o formato de origem?
+- **Qual o comportamento esperado com erros?** O usuário corrige e reimporta?
+- **Há integração com outros sistemas?** Os dados vêm de ERPs, bancos, conciliação?
 
 Sem essas respostas, as decisões de escala (quantidade de workers, tamanho do pool de conexões, necessidade de cache, separação de banco de leitura) são estimativas que precisariam ser validadas com dados reais de uso.
 
