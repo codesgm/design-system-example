@@ -42,7 +42,7 @@ Pré-requisitos: Docker e Docker Compose.
 
 ```bash
 cd docker
-cp .env.example .env
+cp .env.example .env  (pode remover o .example que irá funcionar)
 docker compose up -d --build
 ```
 
