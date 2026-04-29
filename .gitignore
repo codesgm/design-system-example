@@ -1,0 +1,28 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Java build
+demo/target/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Docker data
+.data/
+
+# Env (manter apenas o example)
+docker/.env
+!docker/.env.example
+
+# Arquivos grandes de teste
+*.csv
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
